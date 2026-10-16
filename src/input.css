@@ -1,0 +1,138 @@
+@import "tailwindcss";
+@source "../index.html";
+
+/* Jetons de design (les couleurs d'accent sont redéfinies par ambiance plus bas) */
+@theme {
+  --breakpoint-sm: 561px;
+  --breakpoint-tm: 701px;
+  --breakpoint-md: 861px;
+  --breakpoint-lg: 1001px;
+
+  --color-ink: #0b1d21;
+  --color-bg: #f4f7f7;
+  --color-fg: #0f1f22;
+  --color-muted: #5a6a6d;
+  --color-line: rgb(15 31 34 / .09);
+  --color-surface: rgb(255 255 255 / .86);
+  --color-aqua: #0a858d;
+  --color-aqua-bright: #3fd3c8;
+  --color-aqua-soft: #dff2f1;
+  --color-copper: #c4682f;
+  --color-wa: #1fa855;
+
+  --font-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --shadow-card: 0 1px 2px rgb(11 29 33 / .04), 0 18px 40px -28px rgb(11 29 33 / .35);
+  --shadow-lift: 0 18px 30px -22px rgb(11 29 33 / .5);
+}
+
+@layer base {
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; color-scheme: light; }
+  body { @apply bg-bg text-fg font-body text-[1.0625rem] leading-[1.6]; }
+  a { color: var(--color-aqua); }
+  h1, h2, h3 { @apply font-display font-extrabold leading-[1.02] tracking-[-.02em] text-balance; font-stretch: 118%; }
+  h1 { font-size: clamp(2.5rem, 6.4vw, 4.8rem); }
+  h2 { font-size: clamp(1.9rem, 4.2vw, 3.1rem); }
+  h3 { font-size: 1.3rem; letter-spacing: -.01em; }
+  section { @apply py-[60px] md:py-[76px]; }
+  :focus-visible { outline: 3px solid var(--color-copper); outline-offset: 3px; }
+  input, select, textarea {
+    font: inherit;
+    @apply w-full font-normal px-3.5 py-3 border border-line bg-white/70 text-fg rounded-[10px] transition;
+
+  }
+  input:focus, select:focus, textarea:focus { @apply border-aqua outline-none ring-4 ring-aqua-soft; }
+  textarea { @apply min-h-[110px] resize-y; }
+}
+
+/* Petits composants réutilisés partout */
+@utility wrap { max-width: 1180px; margin-inline: auto; padding-inline: 20px; }
+@utility eyebrow {
+  @apply inline-flex items-center gap-2 font-mono font-medium text-[.74rem] leading-[1.3] tracking-[.14em] uppercase text-copper;
+  &::before { content: ""; width: 18px; height: 2px; background: currentColor; }
+}
+@utility lead { @apply text-[1.15rem] text-muted max-w-[58ch]; }
+@utility card { @apply bg-surface border border-white/70 rounded-2xl shadow-card; }
+@utility btn {
+  @apply inline-flex items-center justify-center gap-[9px] font-bold text-base leading-none px-6 py-4 rounded-full no-underline border-2 border-transparent cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_-12px_rgb(0_0_0/.45)];
+  & svg { width: 20px; height: 20px; flex: none; }
+}
+@utility btn-sm { @apply inline-flex items-center gap-1.5 font-semibold text-[.9rem] border-0 px-3.5 py-[9px] rounded-full cursor-pointer no-underline; }
+@utility ico {
+  @apply grid place-items-center rounded-xl bg-aqua-soft text-aqua flex-none transition-colors duration-200;
+  & svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+}
+
+/* Ambiances : fond photo flouté par page, piscine (aqua) ou construction (cuivre) */
+.t-pool { --tint: rgb(230 246 246 / .82); --tint2: rgb(243 250 250 / .9); --hero-tint: 11 29 33; --season-mid: #086a73; --season-end: #0b1d21; }
+.t-bat {
+  --color-aqua: #b0532a; --color-aqua-bright: #f2a36d; --color-aqua-soft: #f7e6d8; --color-copper: #9a4520;
+  --tint: rgb(246 238 227 / .82); --tint2: rgb(249 245 239 / .9); --hero-tint: 30 21 14; --season-mid: #7a3a1c; --season-end: #2a1d14;
+}
+#p-accueil { --bgimg: url(../photos/piscine-rectangulaire-m.jpg); }
+#p-services { --bgimg: url(../photos/verriere-structure-m.jpg); --heroimg: url(../photos/equipe-verriere-m.jpg); }
+#p-realisations { --bgimg: url(../photos/piscine-ovale-villa-m.jpg); --heroimg: url(../photos/piscine-terrasse-restaurant-m.jpg); }
+#p-apropos { --bgimg: url(../photos/immeuble-renove-m.jpg); --heroimg: url(../photos/equipe-pergola-m.jpg); }
+#p-contact { --bgimg: url(../photos/piscine-terrasse-bois-m.jpg); --heroimg: url(../photos/piscine-nuit-m.jpg); }
+.zone-bat { --bgimg: url(../photos/cour-paves-m.jpg); position: relative; isolation: isolate; overflow: hidden; }
+
+.page { position: relative; isolation: isolate; }
+.page::before, .zone-bat::before {
+  content: ""; inset: -40px; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, var(--tint), var(--tint2)), var(--bgimg) center / cover no-repeat;
+  filter: blur(18px) saturate(1.15); transition: background .8s ease;
+}
+.page::before { position: fixed; }
+.zone-bat::before { position: absolute; }
+
+.page-hero { position: relative; isolation: isolate; overflow: hidden; background: rgb(var(--hero-tint)); }
+.page-hero::before { content: ""; position: absolute; inset: -20px; z-index: -1; background: var(--heroimg) center / cover no-repeat; filter: blur(5px) saturate(1.1); transition: background .8s ease; }
+.page-hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(100deg, rgb(var(--hero-tint) / .93) 0%, rgb(var(--hero-tint) / .75) 55%, rgb(var(--hero-tint) / .5) 100%); }
+
+.hero::before { content: ""; position: absolute; inset: -16px; z-index: -2; background: url(../photos/piscine-campagne.jpg) center 60% / cover no-repeat; filter: blur(3px); }
+.hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(11 29 33 / .88) 0%, rgb(11 29 33 / .8) 60%, rgb(11 29 33 / .92) 100%); }
+@media (width >= 861px) {
+  .hero::after { background: linear-gradient(100deg, rgb(11 29 33 / .94) 0%, rgb(11 29 33 / .78) 45%, rgb(11 29 33 / .2) 100%); }
+}
+
+/* Réalisations : l'ambiance suit le filtre choisi */
+#p-realisations[data-amb="pis"] { --bgimg: url(../photos/piscine-campagne-m.jpg); --heroimg: url(../photos/piscine-nuit-m.jpg); --tint: rgb(220 244 246 / .8); --tint2: rgb(238 250 251 / .9); }
+#p-realisations[data-amb="bat"] {
+  --color-aqua: #b0532a; --color-aqua-bright: #f2a36d; --color-aqua-soft: #f7e6d8; --color-copper: #9a4520;
+  --tint: rgb(246 238 227 / .82); --tint2: rgb(249 245 239 / .9); --hero-tint: 30 21 14; --season-mid: #7a3a1c; --season-end: #2a1d14;
+  --bgimg: url(../photos/villa-contemporaine-m.jpg); --heroimg: url(../photos/immeuble-renove-m.jpg);
+}
+#p-realisations[data-amb="int"] {
+  --color-aqua: #8a6a2f; --color-aqua-bright: #e3c27f; --color-aqua-soft: #f3ecdd; --color-copper: #8a6a2f;
+  --tint: rgb(247 246 243 / .84); --tint2: rgb(251 250 248 / .92); --hero-tint: 28 28 30; --season-mid: #4a3c24; --season-end: #1c1c1e;
+  --bgimg: url(../photos/lounge-bar-m.jpg); --heroimg: url(../photos/bar-briques-m.jpg);
+}
+#p-realisations[data-amb="ext"] {
+  --color-aqua: #4d7a36; --color-aqua-bright: #a8d48a; --color-aqua-soft: #e6f0dc; --color-copper: #4d7a36;
+  --tint: rgb(236 243 230 / .82); --tint2: rgb(246 250 242 / .9); --hero-tint: 20 32 22; --season-mid: #2f4f24; --season-end: #142016;
+  --bgimg: url(../photos/jardin-pas-japonais-m.jpg); --heroimg: url(../photos/pergola-vegetale-m.jpg);
+}
+/* Veines de marbre discrètes pour les intérieurs */
+#p-realisations::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity .8s ease;
+  background:
+    linear-gradient(115deg, transparent 30%, rgb(120 110 95 / .07) 31%, transparent 33%),
+    linear-gradient(160deg, transparent 55%, rgb(120 110 95 / .06) 56.5%, transparent 58%),
+    linear-gradient(95deg, transparent 72%, rgb(170 140 80 / .07) 73%, transparent 74.5%),
+    linear-gradient(140deg, transparent 12%, rgb(120 110 95 / .05) 13%, transparent 15%);
+}
+#p-realisations[data-amb="int"]::after { opacity: 1; }
+
+/* Défilant et apparitions (le contenu reste visible au repos) */
+@keyframes tick { to { transform: translateX(-50%); } }
+@keyframes rise { from { opacity: .35; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .reveal.in { animation: rise .7s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--d, 0) * 80ms); }
+  .page:not([hidden]) .rise { animation: rise .8s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--d, 0) * 90ms); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; }
+}
