@@ -1,5 +1,6 @@
 @import "tailwindcss";
-@source "../index.html";
+@source "../*.html";
+@source "../js";
 
 /* Jetons de design (les couleurs d'accent sont redéfinies par ambiance plus bas) */
 @theme {

@@ -2,7 +2,7 @@
   "name": "site-mkr",
   "private": true,
   "scripts": {
-    "build": "tailwindcss -i src/input.css -o css/styles.css --minify",
+    "build": "node scripts/prerender.mjs && tailwindcss -i src/input.css -o css/styles.css --minify",
     "dev": "tailwindcss -i src/input.css -o css/styles.css --watch"
   },
   "devDependencies": {
