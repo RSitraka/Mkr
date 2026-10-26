@@ -28,6 +28,11 @@ addEventListener("scroll",()=>header.classList.toggle("compact",scrollY>40),{pas
 /* Apparition au défilement : le contenu est visible par défaut, l'animation ne se joue qu'à l'entrée à l'écran */
 function observe(){
   if(reduce||!("IntersectionObserver" in window)) return;
+  /* Pages sans repères posés à la main : titres de section et cartes apparaissent aussi */
+  document.querySelectorAll("main section .wrap > *, #trades-detail > *, #pairs > *, main .card").forEach(el=>{
+    if(el.closest(".reveal")||el.querySelector(".reveal,.card")) return;
+    el.classList.add("reveal"); el.style.setProperty("--d",[...el.parentElement.children].indexOf(el)%4);
+  });
   const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting && e.boundingClientRect.top>0){e.target.classList.add("in");io.unobserve(e.target);} }),{rootMargin:"0px 0px -8% 0px"});
   document.querySelectorAll(".reveal:not(.in)").forEach(el=>{ if(el.getBoundingClientRect().top>innerHeight) io.observe(el); });
 }
@@ -73,7 +78,11 @@ const PAIRS=[
 const esc=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;");
 const shot=(g,i,list,cls)=>`<button type="button" class="group relative block w-full rounded-[14px] overflow-hidden bg-line cursor-zoom-in ${cls}" data-lb="${list}" data-i="${i}"><img class="w-full h-full object-cover transition-transform duration-600 group-hover:scale-105" src="photos/${g.s}-m.jpg" alt="${esc(g.t)} – MKR Construction, Antananarivo" loading="lazy"><span class="absolute inset-x-0 bottom-0 pt-[22px] px-2.5 pb-[9px] text-[.8rem] sm:pt-7 sm:px-3.5 sm:pb-3 sm:text-[.92rem] bg-linear-to-b from-transparent to-ink/82 text-white font-semibold leading-[1.3] text-left">${esc(g.t)}</span></button>`;
 let view=G;
-function renderShots(f){ view=f==="all"?G:G.filter(g=>g.c===f); document.getElementById("shots").innerHTML=view.map((g,i)=>shot(g,i,"g","break-inside-avoid mb-2 sm:mb-3 [&_img]:h-auto")).join(""); }
+function renderShots(f){
+  view=f==="all"?G:G.filter(g=>g.c===f); const el=document.getElementById("shots");
+  el.innerHTML=view.map((g,i)=>shot(g,i,"g","break-inside-avoid mb-2 sm:mb-3 [&_img]:h-auto")).join("");
+  if(!reduce&&el.animate) [...el.children].forEach((c,i)=>c.animate([{opacity:0,transform:"translateY(16px) scale(.97)"},{opacity:1,transform:"none"}],{duration:520,delay:Math.min(i*45,450),easing:"cubic-bezier(.2,.7,.2,1)",fill:"backwards"}));
+}
 if(document.getElementById("shots")?.children.length===0) renderShots("all");
 document.querySelectorAll(".filters button").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll(".filters button").forEach(x=>x.setAttribute("aria-pressed",x===b)); renderShots(b.dataset.f);
@@ -88,17 +97,18 @@ fill("pairs",PAIRS.map((p,k)=>`<article class="card rounded-[20px] p-3 sm:p-4 gr
 
 /* Visionneuse */
 let lbList=[], lbI=0, lbEl=null, lastFocus=null;
-function lbShow(){ const g=lbList[lbI]; lbEl.querySelector("img").src="photos/"+g.s+".jpg"; lbEl.querySelector("img").alt=g.t; lbEl.querySelector("p").textContent=g.t+"  ·  "+(lbI+1)+" / "+lbList.length; }
+function lbShow(dir=0){ const g=lbList[lbI], im=lbEl.querySelector("img"); im.src="photos/"+g.s+".jpg"; im.alt=g.t;
+  if(!reduce&&im.animate) im.animate([{opacity:0,transform:dir?`translateX(${dir*40}px)`:"scale(.94)"},{opacity:1,transform:"none"}],{duration:380,easing:"cubic-bezier(.2,.7,.2,1)"}); lbEl.querySelector("p").textContent=g.t+"  ·  "+(lbI+1)+" / "+lbList.length; }
 function lbOpen(list,i){
   lbList=list; lbI=i; lastFocus=document.activeElement;
   lbEl=document.createElement("div");
-  lbEl.className="fixed inset-0 z-60 bg-[rgb(6_14_16/.94)] flex flex-col items-center justify-center px-4 pt-[calc(56px+env(safe-area-inset-top,0px))] pb-[calc(70px+env(safe-area-inset-bottom,0px))] [&>button]:absolute [&>button]:bg-white/12 [&>button]:text-white [&>button]:rounded-full [&>button]:size-[46px] [&>button]:text-[1.4rem] [&>button]:font-semibold [&>button]:grid [&>button]:place-items-center [&>button]:cursor-pointer";
+  lbEl.className="lb fixed inset-0 z-60 bg-[rgb(6_14_16/.94)] flex flex-col items-center justify-center px-4 pt-[calc(56px+env(safe-area-inset-top,0px))] pb-[calc(70px+env(safe-area-inset-bottom,0px))] [&>button]:absolute [&>button]:bg-white/12 [&>button]:text-white [&>button]:rounded-full [&>button]:size-[46px] [&>button]:text-[1.4rem] [&>button]:font-semibold [&>button]:grid [&>button]:place-items-center [&>button]:cursor-pointer";
   lbEl.setAttribute("role","dialog"); lbEl.setAttribute("aria-modal","true"); lbEl.setAttribute("aria-label","Photo agrandie");
   lbEl.innerHTML='<img alt="" class="max-w-full max-h-full object-contain rounded-lg"><p class="text-white mt-3 text-center font-semibold"></p><button type="button" class="x top-[calc(12px+env(safe-area-inset-top,0px))] right-4" aria-label="Fermer">✕</button><button type="button" class="pv left-4 bottom-[calc(14px+env(safe-area-inset-bottom,0px))] md:bottom-auto md:top-1/2" aria-label="Photo précédente">‹</button><button type="button" class="nx right-4 bottom-[calc(14px+env(safe-area-inset-bottom,0px))] md:bottom-auto md:top-1/2" aria-label="Photo suivante">›</button>';
   document.body.appendChild(lbEl); document.body.style.overflow="hidden"; lbShow();
   lbEl.querySelector(".x").onclick=lbClose;
-  lbEl.querySelector(".pv").onclick=()=>{lbI=(lbI-1+lbList.length)%lbList.length;lbShow();};
-  lbEl.querySelector(".nx").onclick=()=>{lbI=(lbI+1)%lbList.length;lbShow();};
+  lbEl.querySelector(".pv").onclick=()=>{lbI=(lbI-1+lbList.length)%lbList.length;lbShow(-1);};
+  lbEl.querySelector(".nx").onclick=()=>{lbI=(lbI+1)%lbList.length;lbShow(1);};
   lbEl.addEventListener("click",e=>{ if(e.target===lbEl) lbClose(); });
   let x0=null; lbEl.addEventListener("touchstart",e=>{x0=e.touches[0].clientX;},{passive:true});
   lbEl.addEventListener("touchend",e=>{ if(x0===null)return; const dx=e.changedTouches[0].clientX-x0; if(Math.abs(dx)>50) lbEl.querySelector(dx<0?".nx":".pv").click(); x0=null; });
@@ -142,6 +152,28 @@ Détails : ${v("msg")||"à préciser lors du rendez-vous"}`;
 });
 document.getElementById("copy")?.addEventListener("click",e=>{const n=document.getElementById("out");copyText(n.textContent,e.currentTarget,n);});
 observe();
+
+/* Onde au clic sur les boutons */
+if(!reduce) document.addEventListener("pointerdown",e=>{
+  const b=e.target.closest(".btn,.btn-sm"); if(!b) return;
+  const r=b.getBoundingClientRect(), s=document.createElement("span");
+  s.className="ripple"; s.style.cssText=`left:${e.clientX-r.left}px;top:${e.clientY-r.top}px;--s:${Math.hypot(r.width,r.height)*2}px`;
+  b.appendChild(s); s.addEventListener("animationend",()=>s.remove());
+});
+
+/* Reflet qui suit le pointeur sur les cartes, et inclinaison des cartes photo */
+if(!reduce&&matchMedia("(hover: hover) and (pointer: fine)").matches){
+  document.querySelectorAll("#trades-home > article, #home-shots > button").forEach(el=>el.dataset.tilt="");
+  document.addEventListener("pointermove",e=>{
+    const c=e.target.closest?.(".card"), t=e.target.closest?.("[data-tilt]");
+    if(c){ const r=c.getBoundingClientRect(); c.style.setProperty("--mx",e.clientX-r.left+"px"); c.style.setProperty("--my",e.clientY-r.top+"px"); }
+    if(t){ const r=t.getBoundingClientRect(), x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
+      t.style.setProperty("--rx",(-y*5).toFixed(2)+"deg"); t.style.setProperty("--ry",(x*6).toFixed(2)+"deg"); }
+  },{passive:true});
+  document.addEventListener("pointerout",e=>{
+    const t=e.target.closest?.("[data-tilt]"); if(t&&!t.contains(e.relatedTarget)){ t.style.removeProperty("--rx"); t.style.removeProperty("--ry"); }
+  });
+}
 
 /* Anciens liens du site à onglets (…/#services) : redirige vers la vraie page */
 const OLD={services:"services.html",realisations:"realisations.html",apropos:"a-propos.html",contact:"contact.html"};
