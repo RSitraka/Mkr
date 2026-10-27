@@ -132,6 +132,28 @@ function copyText(text,btn,node){
 document.querySelectorAll("[data-copy]").forEach(b=>b.addEventListener("click",()=>{const n=document.getElementById(b.dataset.copy);copyText(n.textContent,b,n);}));
 document.getElementById("share")?.addEventListener("click",e=>copyText(location.href.split("#")[0],e.currentTarget,null));
 
+/* Carrousel des types de projet : choisir un type fait basculer l'ambiance (piscine ou bâtiment) */
+const TYPES=[
+ ["Piscine (création)","piscine-campagne","pis"],["Piscine (rénovation ou entretien)","piscine-renovation","reno"],
+ ["Construction de bâtiment","villa-contemporaine","bat"],["Électricité","restaurant-amenage","elec"],["Plomberie","reseau-eau","plo"],
+ ["Carrelage","toit-terrasse-verriere","car"],["Pavés autobloquants","allee-chevrons","pav"],["Toiture ou terrasse","apres-terrasse","eta"],
+ ["Peinture et finitions","restaurant-rapide","pei"],["Aménagements extérieurs","pergola-vegetale","ext"],["Plusieurs travaux","immeuble-renove","new"]
+];
+fill("types",TYPES.map(([t,p,i],n)=>`<label class="tcard group relative snap-start shrink-0 w-[150px] sm:w-[172px] rounded-2xl overflow-hidden bg-white cursor-pointer gap-0! outline-2 outline-offset-2 outline-transparent has-checked:outline-aqua has-focus-visible:outline-copper"><input class="sr-only" type="radio" name="type" value="${t}"${n?"":" checked"}><img class="w-full aspect-4/3 object-cover transition-transform duration-500 group-hover:scale-105 group-has-checked:scale-105" src="photos/${p}-m.jpg" alt="" loading="lazy"><span class="flex items-center gap-2 p-2.5 pr-3 text-[.86rem] leading-tight font-semibold"><span class="ico size-8 rounded-lg group-has-checked:bg-aqua group-has-checked:text-white [&_svg]:size-[18px]"><svg><use href="#i-${i}"/></svg></span>${t}</span><span class="absolute top-2 right-2 size-6 grid place-items-center rounded-full bg-aqua text-white scale-0 transition-transform duration-300 group-has-checked:scale-100" aria-hidden="true"><svg class="size-3.5"><use href="#i-check"/></svg></span></label>`).join(""));
+const types=document.getElementById("types");
+if(types){
+  const prev=document.getElementById("types-prev"), next=document.getElementById("types-next"), page=document.getElementById("p-contact");
+  const ends=()=>{ prev.disabled=types.scrollLeft<4; next.disabled=types.scrollLeft+types.clientWidth>types.scrollWidth-4; };
+  prev.addEventListener("click",()=>types.scrollBy({left:-types.clientWidth*.8}));
+  next.addEventListener("click",()=>types.scrollBy({left:types.clientWidth*.8}));
+  types.addEventListener("scroll",ends,{passive:true}); addEventListener("resize",ends); ends();
+  types.addEventListener("change",e=>{
+    const pool=e.target.value.startsWith("Piscine");
+    page.classList.toggle("t-pool",pool); page.classList.toggle("t-bat",!pool);
+    e.target.closest("label").scrollIntoView({behavior:reduce?"auto":"smooth",block:"nearest",inline:"nearest"});
+  });
+}
+
 /* Formulaire de rendez-vous */
 document.getElementById("rdv")?.addEventListener("submit",e=>{
   e.preventDefault();
@@ -142,7 +164,7 @@ document.getElementById("rdv")?.addEventListener("submit",e=>{
 Je souhaite prendre rendez-vous.
 Nom : ${v("nom")}
 Téléphone : ${v("tel")}
-Projet : ${v("type")}
+Projet : ${document.querySelector("[name=type]:checked")?.value||"à préciser"}
 Lieu : ${v("lieu")||"à préciser"}
 Disponibilités : ${v("dispo")||"à convenir"}
 Détails : ${v("msg")||"à préciser lors du rendez-vous"}`;
@@ -162,7 +184,7 @@ if(!reduce) document.addEventListener("pointerdown",e=>{
 });
 
 /* Reflet qui suit le pointeur sur les cartes, inclinaison 3D et ombre qui glisse à l'opposé */
-const FLOAT=".card,#home-shots > button,#shots > button,.hero aside";
+const FLOAT=".card,#home-shots > button,#shots > button,.hero aside,.tcard";
 if(!reduce&&matchMedia("(hover: hover) and (pointer: fine)").matches){
   document.addEventListener("pointermove",e=>{
     const t=e.target.closest?.(FLOAT); if(!t) return;

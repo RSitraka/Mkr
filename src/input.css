@@ -156,7 +156,7 @@
 
 /* Cartes qui flottent au-dessus du fond : ombres en couches teintées par l'ambiance,
    arête fine éclairée par le haut, ombre décalée à l'opposé de l'inclinaison (--sx/--sy réglés en JS) */
-:is(.card, #home-shots > button, #shots > button, .hero aside) {
+:is(.card, #home-shots > button, #shots > button, .hero aside, .tcard) {
   --sh: var(--hero-tint, 11 29 33);
   transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
   box-shadow:
@@ -169,7 +169,7 @@
     var(--sx, 0px) calc(34px + var(--sy, 0px)) 56px -24px rgb(var(--sh) / .28);
   transition: transform .5s cubic-bezier(.2, .7, .2, 1), translate .45s cubic-bezier(.2, .7, .2, 1), box-shadow .45s cubic-bezier(.2, .7, .2, 1), border-color .2s;
 }
-:is(.card, #home-shots > button, #shots > button, .hero aside):hover {
+:is(.card, #home-shots > button, #shots > button, .hero aside, .tcard):hover {
   translate: 0 -5px;
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / .6),
@@ -183,7 +183,7 @@
 
 /* Bords bombés façon coussin : lumière en haut à gauche, bords qui s'arrondissent vers l'ombre en bas à droite.
    Calque posé au-dessus des photos pour que l'effet tienne aussi sur les vignettes */
-:is(.card, #home-shots > button, #shots > button, .hero aside)::before {
+:is(.card, #home-shots > button, #shots > button, .hero aside, .tcard)::before {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
   background: radial-gradient(ellipse 130% 110% at 35% 25%, rgb(255 255 255 / .09), transparent 55%, rgb(var(--sh) / .07) 100%);
   box-shadow:
