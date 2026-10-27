@@ -3,7 +3,9 @@ const fill=(id,html)=>{const el=document.getElementById(id); if(el&&!el.children
 
 /* Défilant */
 const metiers=["Piscines","Bâtiment","Électricité","Plomberie","Carrelage","Pavés autobloquants","Toiture","Peinture","Aménagements extérieurs"];
-fill("tick",[...metiers,...metiers].map(m=>`<span class="font-display font-extrabold text-[1.15rem] [font-stretch:118%] px-[22px] inline-flex items-center gap-[22px] after:content-[''] after:size-2 after:rounded-full after:bg-ink after:opacity-50">${m}</span>`).join(""));
+/* Un métier sur deux en lettres pleines, l'autre en contour ; le sens reste lisible au raccord de la boucle */
+const tick=metiers.map((m,i)=>`<span class="inline-flex items-center gap-7 px-3.5 font-display font-extrabold text-[1.3rem] sm:text-[1.55rem] leading-none tracking-[-.01em] [font-stretch:118%] ${i%2?"text-[#eafaf8] [-webkit-text-stroke:2.2px_var(--color-ink)] [paint-order:stroke_fill]":""}">${m}<span class="text-[.75rem] text-ink/40 [-webkit-text-stroke:0]">✦</span></span>`).join("");
+fill("tick",tick+tick);
 
 /* Corps d'état */
 const T=[
