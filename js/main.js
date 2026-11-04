@@ -213,7 +213,6 @@ function arrive(){
   const door=go.dir==="out"&&(document.querySelector(`[data-door="${go.from}"]`)||document.querySelector('[data-door="entree"]'));
   if(door){
     /* On ressort : la caméra part de l'intérieur de la porte, recule, puis la porte se referme */
-    door.closest("li")?.scrollIntoView({block:"nearest",inline:"center",behavior:"instant"});
     aim(door.querySelector(".opening")||door);
     door.querySelector(".leaf")?.animate([{transform:"rotateY(-104deg)"},{transform:"rotateY(-104deg)",offset:.55},{transform:"rotateY(0deg)"}],{duration:1150,easing:"cubic-bezier(.4,0,.2,1)"});
     scene.animate([{transform:"scale(3.6)"},{transform:"scale(1)"}],{duration:820,easing:"cubic-bezier(.3,0,.2,1)"});
