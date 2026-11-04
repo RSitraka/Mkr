@@ -1,8 +1,10 @@
-/* Remplit un conteneur seulement s'il existe sur la page et est encore vide (le HTML est pré-rendu pour Google) */
+/* MKR Construction : contenu généré (métiers, galerie, avant/après) et petites interactions.
+   Le contenu généré est aussi écrit dans le HTML par scripts/prerender.mjs pour Google. */
 const fill=(id,html)=>{const el=document.getElementById(id); if(el&&!el.children.length) el.innerHTML=html;};
 const esc=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const ic=k=>`<span class="ico"><svg><use href="#i-${k}"/></svg></span>`;
 
-/* ---------- Atelier (Services) : fiches accrochées au panneau à outils ---------- */
+/* ---------- Corps d'état ---------- */
 const T=[
  {i:"bat",p:"apres-immeuble",t:"Bâtiment & gros œuvre",s:"Maisons, villas, immeubles",l:["Maisons et villas","Extensions","Murs et clôtures","Rénovation"]},
  {i:"elec",p:"restaurant-amenage",t:"Électricité",s:"Installation et mise aux normes",l:["Installation neuve","Mise aux normes","Éclairage intérieur et extérieur"]},
@@ -13,9 +15,11 @@ const T=[
  {i:"pei",p:"restaurant-rapide",t:"Peinture & finitions",s:"Pour un rendu soigné",l:["Intérieur","Façades","Finitions"]},
  {i:"ext",p:"pergola-vegetale",t:"Aménagements extérieurs",s:"Autour de la maison",l:["Portails et clôtures","Jardins et terrasses","Pergolas"]}
 ];
-fill("trades-detail",T.map((x,n)=>`<article class="fiche"><button type="button" class="fiche-photo" data-lb="s" data-i="${n}"><span class="sr-only">Agrandir la photo : </span><img src="photos/${x.p}-m.jpg" alt="${esc(x.t)} – chantier MKR Construction, Antananarivo" loading="lazy" decoding="async"></button><h3><span class="ico"><svg><use href="#i-${x.i}"/></svg></span>${esc(x.t)}</h3><p>${esc(x.s)}</p><ul>${x.l.map(y=>`<li>${esc(y)}</li>`).join("")}</ul></article>`).join(""));
+fill("trades-home",T.map((x,n)=>`<article class="trade reveal" style="--d:${n%4}"><img class="trade-img" src="photos/${x.p}-m.jpg" alt="${esc(x.t)} – MKR Construction, Antananarivo" loading="lazy" decoding="async">${ic(x.i)}<h3>${esc(x.t)}</h3><p>${esc(x.s)}</p></article>`).join(""));
+fill("trades-detail",T.map((x,n)=>`<article class="svc"><button type="button" class="svc-ph" data-lb="s" data-i="${n}"><span class="sr-only">Agrandir la photo : </span><img src="photos/${x.p}-m.jpg" alt="${esc(x.t)} – chantier MKR Construction, Antananarivo" loading="lazy" decoding="async"></button>${ic(x.i)}<div><h3>${esc(x.t)}</h3><p class="sub">${esc(x.s)}</p><ul class="list">${x.l.map(y=>`<li>${esc(y)}</li>`).join("")}</ul></div></article>`).join(""));
 
-/* ---------- Galerie (Réalisations) : cadres et cartels ---------- */
+/* ---------- Réalisations ---------- */
+const CATS={pis:"Piscine",bat:"Bâtiment",int:"Intérieur",ext:"Extérieur"};
 const G=[
 {s:"piscine-campagne",c:"pis",t:"Piscine avec vue"},
 {s:"piscine-rectangulaire",c:"pis",t:"Grande piscine"},
@@ -53,32 +57,39 @@ const PAIRS=[
 {s:"terrasse",t:"Rénovation d'un toit-terrasse",d:"La même terrasse, pendant puis après nos travaux."},
 {s:"allees",t:"Création d'allées de jardin",d:"Le même jardin, pendant puis après nos travaux."}
 ];
-const art=(g,i,list)=>`<figure class="art"><button type="button" class="art-frame" data-lb="${list}" data-i="${i}"><span class="sr-only">Agrandir la photo : </span><img src="photos/${g.s}-m.jpg" alt="${esc(g.t)} – MKR Construction, Antananarivo" loading="lazy" decoding="async"></button><figcaption class="cartel">${esc(g.t)}</figcaption></figure>`;
+const shot=(g,i,list)=>`<button type="button" class="shot" data-lb="${list}" data-i="${i}"><img src="photos/${g.s}-m.jpg" alt="${esc(g.t)} – MKR Construction, Antananarivo" loading="lazy" decoding="async"><span class="cap">${esc(g.t)}</span></button>`;
 let view=G;
-fill("shots",G.map((g,i)=>art(g,i,"g")).join(""));
+fill("shots",G.map((g,i)=>shot(g,i,"g")).join(""));
+const HOME=["piscine-terrasse-restaurant","bar-briques","lounge-bar","piscine-ovale-remplie","jardin-pas-japonais"].map(s=>G.find(g=>g.s===s));
+fill("home-shots",HOME.map((g,i)=>shot(g,i,"h")).join(""));
 PAIRS.forEach(p=>{p.a=p.a||"avant-"+p.s;p.b=p.b||"apres-"+p.s;});
 const PL=[]; PAIRS.forEach(p=>{PL.push({s:p.a,t:p.t+" · pendant"});PL.push({s:p.b,t:p.t+" · après"});});
-const half=(src,alt,i,label)=>`<figure class="art"><button type="button" class="art-frame" data-lb="p" data-i="${i}"><span class="sr-only">Agrandir la photo : </span><img src="photos/${src}-m.jpg" alt="${alt}" loading="lazy" decoding="async"></button><span class="when${label==="Après"?" after":""}" aria-hidden="true">${label}</span></figure>`;
-fill("pairs",PAIRS.map((p,k)=>`<article class="diptych"><div class="diptych-frames">${half(p.a,esc(p.t)+", pendant les travaux",2*k,"Pendant")}${half(p.b,esc(p.t)+", travaux terminés",2*k+1,"Après")}</div><div class="cartel cartel-lg"><h3>${esc(p.t)}</h3><p>${esc(p.d)}</p></div></article>`).join(""));
-
-/* ---------- Salle des plans (Contact) : nuancier des types de projet ---------- */
-const TYPES=[
- ["Piscine (création)","piscine-campagne","pis"],["Piscine (rénovation ou entretien)","piscine-renovation","reno"],
- ["Construction de bâtiment","villa-contemporaine","bat"],["Électricité","restaurant-amenage","elec"],["Plomberie","reseau-eau","plo"],
- ["Carrelage","toit-terrasse-verriere","car"],["Pavés autobloquants","allee-chevrons","pav"],["Toiture ou terrasse","apres-terrasse","eta"],
- ["Peinture et finitions","restaurant-rapide","pei"],["Aménagements extérieurs","pergola-vegetale","ext"],["Plusieurs travaux","immeuble-renove","new"]
-];
-fill("types",TYPES.map(([t,p,i],n)=>`<label class="swatch"><input class="sr-only" type="radio" name="type" value="${t}"${n?"":" checked"}><img src="photos/${p}-m.jpg" alt="" loading="lazy" decoding="async"><span class="swatch-txt"><span class="ico"><svg><use href="#i-${i}"/></svg></span>${t}</span><span class="swatch-ok" aria-hidden="true"><svg class="i"><use href="#i-check"/></svg></span></label>`).join(""));
+fill("pairs",PAIRS.map((p,k)=>`<article class="pair"><button type="button" class="ba" data-lb="p" data-i="${2*k}"><img src="photos/${p.a}-m.jpg" alt="${esc(p.t)}, pendant les travaux" loading="lazy" decoding="async"><span>En cours</span></button><button type="button" class="ba after" data-lb="p" data-i="${2*k+1}"><img src="photos/${p.b}-m.jpg" alt="${esc(p.t)}, travaux terminés" loading="lazy" decoding="async"><span>Réalisé</span></button><div class="txt"><h3>${esc(p.t)}</h3><p>${esc(p.d)}</p></div></article>`).join(""));
 
 /* Tout ce qui suit ne tourne que dans le navigateur (pas pendant le pré-rendu) */
 if(document.body){
 const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/* Anciens liens du site à onglets (…/#services) : redirige vers la vraie page */
+const OLD={services:"services.html",realisations:"realisations.html",apropos:"a-propos.html",contact:"contact.html"};
+if(OLD[location.hash.slice(1)]) location.replace(OLD[location.hash.slice(1)]);
+
+/* En-tête : menu mobile et version compacte au défilement */
+const header=document.getElementById("top"), menu=document.getElementById("menu");
+menu.addEventListener("click",()=>{const o=header.classList.toggle("open");menu.setAttribute("aria-expanded",o);});
+addEventListener("scroll",()=>header.classList.toggle("compact",scrollY>40),{passive:true});
+
+/* Apparition au défilement : visible par défaut, l'animation ne se joue qu'à l'entrée à l'écran */
+if(!reduce&&"IntersectionObserver" in window){
+  const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);} }),{rootMargin:"0px 0px -8% 0px"});
+  document.querySelectorAll(".reveal").forEach(el=>{ if(el.getBoundingClientRect().top>innerHeight) io.observe(el); });
+}
+
 /* Filtres de la galerie */
 document.querySelectorAll(".filters button").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll(".filters button").forEach(x=>x.setAttribute("aria-pressed",x===b));
   const f=b.dataset.f; view=f==="all"?G:G.filter(g=>g.c===f);
-  const el=document.getElementById("shots"); el.innerHTML=view.map((g,i)=>art(g,i,"g")).join("");
+  const el=document.getElementById("shots"); el.innerHTML=view.map((g,i)=>shot(g,i,"g")).join("");
   if(!reduce) [...el.children].forEach((c,i)=>c.animate([{opacity:0,transform:"translateY(14px)"},{opacity:1,transform:"none"}],{duration:450,delay:Math.min(i*40,400),easing:"cubic-bezier(.2,.7,.2,1)",fill:"backwards"}));
 }));
 
@@ -86,9 +97,7 @@ document.querySelectorAll(".filters button").forEach(b=>b.addEventListener("clic
 const TEAM=[{s:"directeur-salle",t:"Avant la remise du chantier, tout est vérifié à fond"},{s:"equipe-pergola",t:"L'équipe à la livraison"},{s:"equipe-baie-vitree",t:"Pose d'une baie vitrée"},{s:"equipe-verriere",t:"Montage d'une verrière"}];
 const SV=T.map(x=>({s:x.p,t:x.t}));
 let lbList=[], lbI=0, lbEl=null, lastFocus=null;
-function lbShow(dir=0){ const g=lbList[lbI], im=lbEl.querySelector("img"); im.src="photos/"+g.s+".jpg"; im.alt=g.t;
-  if(!reduce) im.animate([{opacity:0,transform:dir?`translateX(${dir*40}px)`:"scale(.94)"},{opacity:1,transform:"none"}],{duration:380,easing:"cubic-bezier(.2,.7,.2,1)"});
-  lbEl.querySelector("p").textContent=g.t+"  ·  "+(lbI+1)+" / "+lbList.length; }
+function lbShow(){ const g=lbList[lbI], im=lbEl.querySelector("img"); im.src="photos/"+g.s+".jpg"; im.alt=g.t; lbEl.querySelector("p").textContent=g.t+"  ·  "+(lbI+1)+" / "+lbList.length; }
 function lbOpen(list,i){
   lbList=list; lbI=i; lastFocus=document.activeElement;
   lbEl=document.createElement("div"); lbEl.className="lb";
@@ -96,8 +105,8 @@ function lbOpen(list,i){
   lbEl.innerHTML='<img alt=""><p></p><button type="button" class="x" aria-label="Fermer">✕</button><button type="button" class="pv" aria-label="Photo précédente">‹</button><button type="button" class="nx" aria-label="Photo suivante">›</button>';
   document.body.appendChild(lbEl); document.body.style.overflow="hidden"; lbShow();
   lbEl.querySelector(".x").onclick=lbClose;
-  lbEl.querySelector(".pv").onclick=()=>{lbI=(lbI-1+lbList.length)%lbList.length;lbShow(-1);};
-  lbEl.querySelector(".nx").onclick=()=>{lbI=(lbI+1)%lbList.length;lbShow(1);};
+  lbEl.querySelector(".pv").onclick=()=>{lbI=(lbI-1+lbList.length)%lbList.length;lbShow();};
+  lbEl.querySelector(".nx").onclick=()=>{lbI=(lbI+1)%lbList.length;lbShow();};
   lbEl.addEventListener("click",e=>{ if(e.target===lbEl) lbClose(); });
   let x0=null; lbEl.addEventListener("touchstart",e=>{x0=e.touches[0].clientX;},{passive:true});
   lbEl.addEventListener("touchend",e=>{ if(x0===null)return; const dx=e.changedTouches[0].clientX-x0; if(Math.abs(dx)>50) lbEl.querySelector(dx<0?".nx":".pv").click(); x0=null; });
@@ -110,7 +119,7 @@ document.addEventListener("keydown",e=>{ if(!lbEl)return;
 });
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-lb]"); if(!b) return;
-  const l=b.dataset.lb; lbOpen(l==="g"?view:l==="t"?TEAM:l==="s"?SV:PL,+b.dataset.i);
+  const l=b.dataset.lb; lbOpen(l==="g"?view:l==="h"?HOME:l==="t"?TEAM:l==="s"?SV:PL,+b.dataset.i);
 });
 
 /* ---------- Copie ---------- */
@@ -122,18 +131,7 @@ function copyText(text,btn,node){
 document.querySelectorAll("[data-copy]").forEach(b=>b.addEventListener("click",()=>{const n=document.getElementById(b.dataset.copy);copyText(n.textContent,b,n);}));
 document.getElementById("share")?.addEventListener("click",e=>copyText(location.origin+"/",e.currentTarget,null));
 
-/* ---------- Nuancier des types de projet ---------- */
-const types=document.getElementById("types");
-if(types){
-  const prev=document.getElementById("types-prev"), next=document.getElementById("types-next");
-  const ends=()=>{ prev.disabled=types.scrollLeft<4; next.disabled=types.scrollLeft+types.clientWidth>types.scrollWidth-4; };
-  prev.addEventListener("click",()=>types.scrollBy({left:-types.clientWidth*.8,behavior:reduce?"auto":"smooth"}));
-  next.addEventListener("click",()=>types.scrollBy({left:types.clientWidth*.8,behavior:reduce?"auto":"smooth"}));
-  types.addEventListener("scroll",ends,{passive:true}); addEventListener("resize",ends); ends();
-  types.addEventListener("change",e=>e.target.closest("label").scrollIntoView({behavior:reduce?"auto":"smooth",block:"nearest",inline:"nearest"}));
-}
-
-/* ---------- Fiche de rendez-vous ---------- */
+/* ---------- Formulaire de rendez-vous ---------- */
 document.getElementById("rdv")?.addEventListener("submit",e=>{
   e.preventDefault();
   const v=id=>document.getElementById(id).value.trim(), err=document.getElementById("err");
@@ -143,7 +141,7 @@ document.getElementById("rdv")?.addEventListener("submit",e=>{
 Je souhaite prendre rendez-vous.
 Nom : ${v("nom")}
 Téléphone : ${v("tel")}
-Projet : ${document.querySelector("[name=type]:checked")?.value||"à préciser"}
+Projet : ${v("type")}
 Lieu : ${v("lieu")||"à préciser"}
 Disponibilités : ${v("dispo")||"à convenir"}
 Détails : ${v("msg")||"à préciser lors du rendez-vous"}`;
@@ -153,85 +151,4 @@ Détails : ${v("msg")||"à préciser lors du rendez-vous"}`;
   document.getElementById("result").scrollIntoView({behavior:reduce?"auto":"smooth",block:"nearest"});
 });
 document.getElementById("copy")?.addEventListener("click",e=>{const n=document.getElementById("out");copyText(n.textContent,e.currentTarget,n);});
-
-/* =====================================================================
-   Caméra : on entre par les portes, on ressort en reculant.
-   - data-go="in"   : la porte s'ouvre puis la caméra s'avance dedans
-   - data-go="out"  : la porte se referme devant nous, on recule ; la page d'arrivée
-                      démarre zoomée dans la porte d'où l'on sort, puis recule
-   - data-go="swap" : passage d'une pièce à l'autre
-   Le sens est transmis à la page suivante via sessionStorage.
-   ===================================================================== */
-const scene=document.getElementById("scene"), veil=document.querySelector(".veil"), closer=document.querySelector(".closer");
-const PAGE=document.body.dataset.page, KEY="mkr-go";
-const EASE="cubic-bezier(.6,0,.3,1)";
-let busy=false;
-const save=v=>{try{sessionStorage.setItem(KEY,JSON.stringify(v));}catch(_){}};
-const take=()=>{try{const v=JSON.parse(sessionStorage.getItem(KEY)||"null");sessionStorage.removeItem(KEY);return v;}catch(_){return null;}};
-const doorFor=a=>a.matches("[data-door]")?a:document.querySelector(`[data-door="${a.dataset.doorRef||""}"]`);
-/* Centre d'un élément : dans le repère de la scène (pour transform-origin) et en % de l'écran (pour le voile) */
-function aim(el){
-  const r=el.getBoundingClientRect(), s=scene.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
-  scene.style.transformOrigin=`${cx-s.left}px ${cy-s.top}px`;
-  veil.style.setProperty("--vx",cx/innerWidth*100+"%"); veil.style.setProperty("--vy",cy/innerHeight*100+"%");
-}
-function aimCenter(){ const s=scene.getBoundingClientRect(); scene.style.transformOrigin=`50% ${innerHeight/2-s.top}px`; veil.style.setProperty("--vx","50%"); veil.style.setProperty("--vy","55%"); }
-
-function leave(a){
-  busy=true;
-  const dir=a.dataset.go, href=a.href;
-  save({dir,from:PAGE});
-  if(reduce){ veil.animate([{opacity:0},{opacity:1}],{duration:260,fill:"forwards"}); setTimeout(()=>location.href=href,260); return; }
-  if(dir==="in"){
-    const door=doorFor(a), op=door?.querySelector(".opening")||a, leaf=door?.querySelector(".leaf");
-    aim(op);
-    leaf?.animate([{transform:"rotateY(-104deg)"}],{duration:420,easing:EASE,fill:"forwards"});
-    scene.animate([{transform:"scale(1)"},{transform:"scale(3.6)"}],{duration:720,delay:180,easing:"cubic-bezier(.55,0,.4,1)",fill:"forwards"});
-    veil.animate([{opacity:0},{opacity:1}],{duration:380,delay:520,easing:"ease-in",fill:"forwards"});
-    setTimeout(()=>location.href=href,900);
-  } else {
-    /* On recule : la porte de la pièce se referme devant la caméra */
-    aimCenter();
-    closer.style.visibility="visible";
-    closer.firstElementChild.animate([{transform:"rotateY(-96deg)"},{transform:"rotateY(0deg)"}],{duration:620,easing:"cubic-bezier(.5,0,.3,1)",fill:"forwards"});
-    scene.animate([{transform:"scale(1)"},{transform:"scale(.86)"}],{duration:620,easing:EASE,fill:"forwards"});
-    veil.animate([{opacity:0},{opacity:1}],{duration:200,delay:560,fill:"forwards"});
-    setTimeout(()=>location.href=href,760);
-  }
-}
-document.addEventListener("click",e=>{
-  const a=e.target.closest("a[data-go]");
-  if(!a||e.defaultPrevented||e.button||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey) return;
-  e.preventDefault(); if(!busy) leave(a);
-});
-
-function arrive(){
-  const go=take();
-  document.documentElement.classList.remove("arriving");
-  if(!go) return;
-  if(reduce){ veil.animate([{opacity:1},{opacity:0}],{duration:300,fill:"forwards"}); return; }
-  const door=go.dir==="out"&&(document.querySelector(`[data-door="${go.from}"]`)||document.querySelector('[data-door="entree"]'));
-  if(door){
-    /* On ressort : la caméra part de l'intérieur de la porte, recule, puis la porte se referme */
-    aim(door.querySelector(".opening")||door);
-    door.querySelector(".leaf")?.animate([{transform:"rotateY(-104deg)"},{transform:"rotateY(-104deg)",offset:.55},{transform:"rotateY(0deg)"}],{duration:1150,easing:"cubic-bezier(.4,0,.2,1)"});
-    scene.animate([{transform:"scale(3.6)"},{transform:"scale(1)"}],{duration:820,easing:"cubic-bezier(.3,0,.2,1)"});
-    veil.animate([{opacity:1},{opacity:0}],{duration:520,easing:"ease-out",fill:"forwards"});
-  } else {
-    /* On entre : la caméra avance dans la pièce */
-    aimCenter();
-    scene.animate([{transform:"scale(1.22)",opacity:.5},{transform:"scale(1)",opacity:1}],{duration:760,easing:"cubic-bezier(.2,.7,.2,1)"});
-    veil.animate([{opacity:1},{opacity:0}],{duration:560,easing:"ease-out",fill:"forwards"});
-  }
-}
-arrive();
-/* Bouton « Précédent » du navigateur (page restaurée depuis le cache) : on remet la scène au repos */
-addEventListener("pageshow",e=>{ if(!e.persisted) return;
-  busy=false; document.getAnimations().filter(a=>!(a instanceof CSSAnimation||a instanceof CSSTransition)).forEach(a=>a.cancel()); closer.style.visibility="";
-  document.documentElement.classList.remove("arriving"); try{sessionStorage.removeItem(KEY);}catch(_){}
-});
-
-/* Anciens liens du site à onglets (…/#services) : redirige vers la vraie page */
-const OLD={services:"services.html",realisations:"realisations.html",apropos:"a-propos.html",contact:"contact.html"};
-if(OLD[location.hash.slice(1)]) location.replace(OLD[location.hash.slice(1)]);
 }
